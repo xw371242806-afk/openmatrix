@@ -1,0 +1,184 @@
+/* ============================================================
+   OpenMatrix — Audit ledger for matrix runs (realtime SSE)
+   Research Desk: paper cards, hairlines, ink text, copper accent.
+   ============================================================ */
+
+.trace-page {
+  max-width: 1080px;
+}
+
+/* ── Connection bar ─────────────────────────────────────── */
+
+.trace-conn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trace-conn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trace-conn-input {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.trace-conn-button {
+  flex-shrink: 0;
+}
+
+.trace-conn-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
+  font-size: 12.5px;
+}
+
+.trace-conn-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--info);
+}
+
+.trace-conn-failed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--failed);
+}
+
+/* ── Summary band ───────────────────────────────────────── */
+
+.trace-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trace-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ink-secondary);
+  background: var(--surface);
+}
+
+.trace-chip-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.trace-chip--verified { color: var(--verified); background: var(--verified-wash); border-color: rgba(46, 125, 79, 0.30); }
+.trace-chip--review   { color: var(--review);   background: var(--review-wash);   border-color: rgba(150, 102, 10, 0.32); }
+.trace-chip--failed   { color: var(--failed);   background: var(--failed-wash);   border-color: rgba(179, 55, 43, 0.30); }
+.trace-chip--neutral  { color: var(--ink-muted);background: var(--paper-sunken);  border-color: var(--hairline-strong); }
+.trace-chip--total    { color: var(--ink);      background: var(--surface);       border-color: var(--hairline-strong); }
+
+.trace-observed {
+  display: flex;
+  align-items: baseline;
+  gap: 6px 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.trace-observed .mono {
+  font-size: 11.5px;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Event ledger ───────────────────────────────────────── */
+
+.trace-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline-strong);
+  background: var(--paper-sunken);
+  padding: 11px 14px;
+  margin-bottom: 12px;
+  font-size: 13.5px;
+  color: var(--ink-secondary);
+}
+
+.trace-banner > .anticon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 15px;
+}
+
+.trace-banner--verified {
+  background: var(--verified-wash);
+  border-color: rgba(46, 125, 79, 0.30);
+  color: var(--verified);
+}
+
+.trace-banner + .trace-banner { margin-top: -4px; }
+
+.trace-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trace-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--hairline);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.trace-rows li:last-child { border-bottom: none; }
+
+.trace-row-time {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.trace-row-question {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  flex: 1 1 220px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.trace-row-ids {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  min-width: 0;
+}
+
+.trace-row-ids:empty { display: none; }
+
+.trace-row .signal-tag { flex-shrink: 0; }
+
+.trace-ledger .empty-state { margin-top: 4px; }
+
+.trace-ledger .error-state { margin-bottom: 12px; }

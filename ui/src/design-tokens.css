@@ -1,0 +1,82 @@
+/* ============================================================
+   OpenMatrix — "Research Desk" design tokens (v2, light minimal)
+   Airy neutral canvas, light rail, clean sans, one copper accent.
+   ============================================================ */
+
+:root {
+  /* === Neutral canvas & surfaces === */
+  --paper:         #F7F7F5;   /* app canvas — neutral, no warm cast */
+  --paper-sunken:  #F1F1EE;   /* wells, table headers, code background */
+  --surface:       #FFFFFF;   /* cards, panels */
+  --surface-hover: #F7F7F4;   /* row / item hover */
+
+  /* === Light rail (sidebar) === */
+  --rail:            #FBFBFA;
+  --rail-border:     #ECECEA;
+  --rail-hover:      #F0F0ED;
+  --rail-active:     #ECECE8;
+  --rail-text:       #6B6F76;
+  --rail-text-strong:#1C1E22;
+  --rail-text-dim:   #676C74;
+
+  /* === Hairlines === */
+  --hairline:        #E9E9E6;
+  --hairline-strong: #DBDBD7;
+
+  /* === Ink text === */
+  --ink:           #1C1E22;
+  --ink-secondary: #52565D;
+  --ink-muted:     #6E727A;   /* >= 4.5:1 on white */
+  --ink-faint:     #70757D;   /* low-emphasis text/icons, AA on white */
+
+  /* === Accent — copper (used sparingly) === */
+  --copper:        #A05C2C;
+  --copper-strong: #84491F;
+  --copper-wash:   rgba(160, 92, 44, 0.08);
+
+  /* === Primary action — ink === */
+  --action:        #23262C;
+  --action-hover:  #33373E;
+
+  /* === Signal colors (always paired with icon + text) === */
+  --verified:       #2E7D4F;  --verified-wash: rgba(46, 125, 79, 0.10);
+  --review:         #765000;  --review-wash:   rgba(118, 80, 0, 0.12);
+  --failed:         #B3372B;  --failed-wash:   rgba(179, 55, 43, 0.10);
+  --info:           #33608A;  --info-wash:     rgba(51, 96, 138, 0.10);
+  --signal-neutral: #6E727A;
+  --signal-progress:#33608A;
+
+  /* === Elevation — barely-there, airy SaaS feel === */
+  --shadow-card: 0 1px 2px rgba(28, 30, 34, 0.05), 0 0 0 1px rgba(28, 30, 34, 0.02);
+  --shadow-pop:  0 8px 24px rgba(28, 30, 34, 0.10);
+
+  /* === Typography — clean sans everywhere === */
+  --font-sans: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-serif: var(--font-sans);   /* headings use the same clean sans */
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+
+  /* === Sizing === */
+  --rail-width: 232px;
+  --rail-width-compact: 64px;
+  --header-height: 56px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* === Motion === */
+  --ease-out: cubic-bezier(0.2, 0.6, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+}
+
+/* Motion is an enhancement only — never a requirement for reading or use. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

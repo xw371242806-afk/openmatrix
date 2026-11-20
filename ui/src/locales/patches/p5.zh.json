@@ -1,0 +1,47 @@
+{
+  "pdf": {
+    "viewer_subtitle": "查看原始 PDF，高亮引用原文，并叠加 locate_quote_bboxes 输出的边界框匹配。",
+    "section_source": "来源",
+    "section_quote": "引用高亮",
+    "url_label": "PDF 链接",
+    "quote_label": "需高亮的引用",
+    "legend_title": "引用状态图例",
+    "legend_verified_exact": "引用原文与源文件逐字一致。",
+    "legend_verified_normalized": "引用原文在归一化空白与标点后一致。",
+    "legend_verified_fuzzy": "引用原文近似匹配，存在轻微 OCR 或排版偏差。",
+    "legend_not_found": "未能在被引文档中定位该引用原文。",
+    "legend_not_applicable": "该单元格不适用引用校验。",
+    "quote_match_label": "原文匹配",
+    "bbox_match_label": "边界框匹配",
+    "empty_title": "未打开文档",
+    "empty_hint": "上传 PDF 或从 URL 打开，开始核查证据。"
+  },
+  "settings": {
+    "subtitle": "主密钥访问、模型路由、系统健康状态与审计日志。",
+    "section_appearance": "外观与语言",
+    "section_access": "访问与密钥",
+    "section_routing": "模型路由",
+    "section_system": "系统",
+    "section_audit": "审计日志",
+    "byok_note": "主密钥用于向 OpenMatrix 本身认证，仅保存在内存中，绝不持久化。供应商 API 密钥（BYOK）在分析页按次填写，仅随单次请求发送，OpenMatrix 不会存储。",
+    "router_enabled": "路由已启用",
+    "router_disabled": "路由未启用",
+    "router_default_note": "已配置的默认模型标识符——可能是路由占位符，而非具体供应商模型。",
+    "router_no_tasks": "未配置任何按任务覆盖项。",
+    "router_load_failed": "无法加载模型路由配置。",
+    "router_empty": "模型路由未返回任何配置。",
+    "system_service": "服务",
+    "system_load_failed": "无法加载系统健康状态。",
+    "system_empty": "后端未报告任何组件状态。"
+  },
+  "quality": {
+    "title": "质量回顾",
+    "subtitle": "跨所有矩阵运行，审计引用准确率、失败热点与答案形态。",
+    "cell_status_hint": "抽取单元格结果分布——健康的运行应以完成为主。",
+    "citation_status_hint": "引用原文与源文档的核验情况。",
+    "avg_answer_length_hint": "各状态的答案长度——异常偏长可能意味着注水。",
+    "total_cells_hint": "所有矩阵运行解析的抽取单元格总数。",
+    "most_failed_questions_hint": "失败次数最多的问题——优先改写或调整模型。",
+    "verification_rate_hint": "引用通过源文档核验的完成单元格占比。"
+  }
+}

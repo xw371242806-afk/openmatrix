@@ -1,0 +1,34 @@
+# Production storage overlay: wires the app to PostgreSQL + MinIO/S3 + Qdrant.
+#
+# Usage (from repo root):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod up -d
+#
+# The app runs with metadata on PostgreSQL (via psycopg) and content blobs on
+# MinIO/S3 (via boto3) instead of the default SQLite + local disk. Qdrant is
+# started for the optional vector store (OPENMATRIX_VECTOR_STORE).
+#
+# Determinism: the app command first waits (bounded) for the configured
+# backends, and the storage factory fails closed when an explicitly configured
+# backend is unavailable - the stack never silently runs on SQLite/local disk.
+# Storage engines are reported by GET /api/v1/health/detailed.
+services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    command: >-
+      sh -c "python scripts/wait_for_backends.py --timeout 120 &&
+             python main.py"
+    restart: on-failure
+    environment:
+      OPENMATRIX_METADATA_ENGINE: postgres
+      OPENMATRIX_PG_DSN: postgresql://${POSTGRES_USER:-openmatrix}:${POSTGRES_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:-openmatrix}
+      OPENMATRIX_OBJECT_STORE: s3
+      OPENMATRIX_S3_ENDPOINT: http://minio:9000
+      OPENMATRIX_S3_BUCKET: openmatrix
+      OPENMATRIX_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-openmatrix}
+      OPENMATRIX_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?set in .env}
+      OPENMATRIX_VECTOR_STORE: http://qdrant:6333
+      OPENMATRIX_STORAGE_FAIL_CLOSED: "1"

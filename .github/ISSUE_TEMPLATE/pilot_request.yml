@@ -1,0 +1,28 @@
+name: Controlled Pilot Inquiry
+description: Request a controlled evaluation pilot for a repeatable document research workflow
+title: "Pilot: <your workflow>"
+labels: ["pilot"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Important:** Do not attach confidential documents, credentials, personal data, or regulated information here. Start with public filings or safely de-identified samples.
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Repeatable research workflow
+      description: Describe the documents, questions, and output format you want to evaluate.
+    validations:
+      required: true
+  - type: input
+    id: sample_type
+    attributes:
+      label: Document type & scale
+      placeholder: "e.g., 10-20 annual reports (PDF, 100-200 pages each)"
+    validations:
+      required: true
+  - type: input
+    id: reviewer
+    attributes:
+      label: Evaluation criteria
+      description: How will a domain reviewer verify output quality?

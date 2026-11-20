@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>OpenMatrix Evidence</title>
+    <style>
+      body { font: 14px system-ui, sans-serif; margin: 14px; min-width: 310px; }
+      label { display: block; font-weight: 600; margin-top: 10px; }
+      input { box-sizing: border-box; margin-top: 4px; padding: 7px; width: 100%; }
+      button { margin-top: 14px; padding: 8px 12px; width: 100%; }
+      #status { margin-top: 10px; min-height: 20px; }
+    </style>
+  </head>
+  <body>
+    <label for="baseUrl">OpenMatrix URL</label>
+    <input id="baseUrl" value="http://127.0.0.1:8000" type="url">
+    <label for="projectId">Project ID</label>
+    <input id="projectId" placeholder="research">
+    <label for="token">OpenMatrix Bearer token (optional)</label>
+    <input id="token" type="password" autocomplete="off">
+    <button id="capture">Capture current page</button>
+    <div id="status" role="status"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>

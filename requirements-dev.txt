@@ -1,0 +1,4 @@
+# Dev/test extras used by .github/workflows/tests.yml and release.yml.
+# Install: python -m pip install -r requirements.txt -r requirements-dev.txt
+pytest
+coverage

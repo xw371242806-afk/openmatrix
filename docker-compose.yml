@@ -1,0 +1,67 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      OPENMATRIX_DATA_DIR: /data
+      OPENMATRIX_RUN_DB: /data/runs
+      OPENMATRIX_LIBRARY_ROOT: /data/library
+      OPENMATRIX_EXPORT_ROOT: /data/exports
+      OPENMATRIX_KEYS_DB: /data/keys
+      OPENMATRIX_AUDIT_DB: /data/audit
+      # Default stack: SQLite + local disk (no extra services needed).
+      # Production storage (PostgreSQL + MinIO/S3 + Qdrant) is wired by the
+      # overlay file docker-compose.prod.yml:
+      #   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod up -d
+    volumes:
+      - openmatrix-data:/data
+    # Default profile has no depends_on: the app starts on SQLite/local disk.
+    # The prod overlay (docker-compose.prod.yml) adds hard service_healthy
+    # dependencies on PostgreSQL/MinIO plus a readiness preflight, so the
+    # production stack never silently falls back to SQLite/local disk.
+
+  # Optional production backends - comment out if not needed
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-openmatrix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-openmatrix}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    profiles: ["prod"]
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - qdrant-data:/qdrant/storage
+    profiles: ["prod"]
+
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-openmatrix}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set in .env}
+    volumes:
+      - minio-data:/data
+    # No container healthcheck here: keep startup deterministic via the prod
+    # overlay service_started dependency plus the app readiness preflight
+    # (scripts/wait_for_backends.py). Image is pinned to the pgsty community
+    # rebuild because upstream minio/minio (Docker Hub) and quay.io/minio/minio
+    # anonymous pulls are unavailable (404 / 401).
+    profiles: ["prod"]
+
+volumes:
+  openmatrix-data:
+  pg-data:
+  qdrant-data:
+  minio-data:

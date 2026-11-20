@@ -1,0 +1,11 @@
+[run]
+source = main,storage,library,apikeys,audit,mcp_server
+omit =
+    tests/*
+    */__pycache__/*
+
+[report]
+fail_under = 80
+show_missing = True
+skip_covered = True
+sort = cover

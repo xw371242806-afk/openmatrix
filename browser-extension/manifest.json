@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "OpenMatrix Current Page Evidence",
+  "version": "0.1.0",
+  "description": "User-triggered capture of the active page as an OpenMatrix evidence snapshot.",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "action": {
+    "default_title": "Capture current page evidence",
+    "default_popup": "popup.html"
+  }
+}

@@ -1,0 +1,1 @@
+"""Lightweight OpenMatrix core helpers."""

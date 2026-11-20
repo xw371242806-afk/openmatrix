@@ -1,0 +1,59 @@
+name: ui-e2e
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  playwright-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install playwright httpx
+          python -m playwright install chromium --with-deps
+
+      - name: Build the React UI
+        working-directory: ui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Start mock LLM server
+        run: nohup python scripts/mock_openai.py > /tmp/mock-llm.log 2>&1 &
+
+      - name: Start OpenMatrix service
+        env:
+          OPENMATRIX_RUN_DB: ${{ runner.temp }}/openmatrix-runs
+        run: |
+          mkdir -p "$OPENMATRIX_RUN_DB"
+          nohup python main.py > /tmp/openmatrix-service.log 2>&1 &
+          echo "service_pid=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for service
+        run: |
+          for i in $(seq 1 40); do
+            if curl -sf http://127.0.0.1:8000/api/v1/health >/dev/null 2>&1; then
+              echo "service ready"; exit 0
+            fi
+            sleep 1
+          done
+          echo "service did not become ready" >&2
+          exit 1
+
+      - name: Run UI smoke test (9 pages + i18n + console errors)
+        run: python scripts/ui_smoke_test.py
+
+      - name: Run deep QA test (API contract + axe a11y + responsive + flaky)
+        run: python scripts/deep_qa_test.py
+
+      - name: Stop service
+        if: always()
+        run: kill "$service_pid" || true

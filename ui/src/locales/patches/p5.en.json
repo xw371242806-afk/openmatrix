@@ -1,0 +1,47 @@
+{
+  "pdf": {
+    "viewer_subtitle": "Inspect source PDFs, highlight quoted evidence, and overlay bounding-box matches from locate_quote_bboxes output.",
+    "section_source": "Source",
+    "section_quote": "Quote highlight",
+    "url_label": "PDF URL",
+    "quote_label": "Quote to highlight",
+    "legend_title": "Citation status legend",
+    "legend_verified_exact": "Quote matches the source word for word.",
+    "legend_verified_normalized": "Quote matches after normalizing whitespace and punctuation.",
+    "legend_verified_fuzzy": "Quote matches approximately — minor OCR or formatting drift.",
+    "legend_not_found": "Quote could not be located in the cited document.",
+    "legend_not_applicable": "No citation check applies to this cell.",
+    "quote_match_label": "Quote match",
+    "bbox_match_label": "Box match",
+    "empty_title": "No document open",
+    "empty_hint": "Upload a PDF or open one from a URL to start reviewing evidence."
+  },
+  "settings": {
+    "subtitle": "Master-key access, model routing, system health and the audit trail.",
+    "section_appearance": "Appearance & language",
+    "section_access": "Access & keys",
+    "section_routing": "Model routing",
+    "section_system": "System",
+    "section_audit": "Audit log",
+    "byok_note": "The master key authenticates OpenMatrix itself and is kept in memory only — never stored. Provider API keys (BYOK) are entered on the Analysis page per request, sent once with that request, and never persisted.",
+    "router_enabled": "Routing enabled",
+    "router_disabled": "Routing disabled",
+    "router_default_note": "Configured default model identifier — may be a routing placeholder, not a concrete provider model.",
+    "router_no_tasks": "No per-task overrides are configured.",
+    "router_load_failed": "Could not load the model routing configuration.",
+    "router_empty": "The model router did not return a configuration.",
+    "system_service": "Service",
+    "system_load_failed": "Could not load system health.",
+    "system_empty": "No component status was reported."
+  },
+  "quality": {
+    "title": "Quality Review",
+    "subtitle": "Audit citation accuracy, failure hotspots and answer shape across every matrix run.",
+    "cell_status_hint": "Outcome distribution of extraction cells — a healthy run is mostly completed.",
+    "citation_status_hint": "How quoted evidence verified against the source documents.",
+    "avg_answer_length_hint": "Answer length per cell status — unusually long answers may signal padding.",
+    "total_cells_hint": "Extraction cells parsed across all matrix runs.",
+    "most_failed_questions_hint": "Questions that failed most often — candidates for rewording or model changes.",
+    "verification_rate_hint": "Share of completed cells whose citation verified against the source."
+  }
+}

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenMatrix - Matrix RAG (Zero Dependency Edition)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f8fafc; color: #334155; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 20px; }
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .left-panel { flex: 1; min-width: 300px; }
+        .right-panel { flex: 2; min-width: 400px; display: flex; flex-direction: column; }
+        h1 { color: #4f46e5; font-size: 24px; margin-top: 0; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); }
+        .btn { width: 100%; padding: 10px; background: #4f46e5; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background: #4338ca; }
+        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; margin-bottom: 15px; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .msg-box { margin-top: 15px; padding: 10px; border-radius: 4px; font-size: 14px; display: none; }
+        .msg-error { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
+        .msg-success { background: #dcfce7; color: #15803d; border: 1px solid #4ade80; }
+        .msg-info { background: #eff6ff; color: #1d4ed8; border: 1px solid #60a5fa; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border: 1px solid #e2e8f0; text-align: left; vertical-align: top; }
+        th { background: #f8fafc; font-weight: bold; color: #475569; }
+        td.quote { font-style: italic; color: #64748b; font-size: 13px; }
+        .status-badge { display: inline-block; padding: 3px 7px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .status-verified { background: #dcfce7; color: #15803d; border: 1px solid #4ade80; }
+        .status-review { background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; }
+        .status-muted { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+        .page-label { display: block; margin-top: 6px; color: #64748b; font-size: 12px; }
+        .empty-state { text-align: center; color: #94a3b8; padding: 50px; border: 2px dashed #cbd5e1; border-radius: 8px; margin-top: 10px; flex: 1; }
+        .pdf-viewer { margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 12px; max-height: 480px; overflow: auto; }
+        .citation-navigator { margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 12px; max-height: 320px; overflow: auto; }
+        .citation-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; cursor: pointer; }
+        .citation-item:hover { background: #eef2ff; }
+        .citation-quote { flex: 1; font-size: 13px; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pdf-status { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+        .pdf-status-error { color: #b91c1c; }
+        .pdf-page { position: relative; margin-bottom: 10px; border: 1px solid #e2e8f0; background: white; }
+        .pdf-page canvas { display: block; width: 100%; }
+        .pdf-text-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .pdf-text-layer span { position: absolute; background: transparent; }
+        .pdf-highlight { background: #fde68a !important; }
+        tr.quote-hover td { background: #fffbeb; }
+        td.quote { cursor: pointer; }
+        .compare-selects { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 8px; flex-wrap: wrap; }
+        .compare-select { flex: 1; min-width: 200px; }
+        .compare-select button { margin-bottom: 15px; }
+        .comparison-table th { position: sticky; top: 0; z-index: 1; }
+        .comparison-table tr.divergent-row { background: #fffbeb; }
+        .comparison-table tr.divergent-row td { border-color: #f59e0b; }
+        .comparison-cell { padding: 4px 0; }
+        .comparison-cell.divergent { border-left: 3px solid #f59e0b; padding-left: 8px; }
+        .comparison-line { margin-bottom: 6px; }
+        .comparison-line .page-label { display: inline; margin-left: 6px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 控制面板 -->
+        <div class="panel left-panel">
+            <h1>OpenMatrix <span style="font-size: 12px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569; vertical-align: middle;">零依赖防白屏版</span></h1>
+            <p style="font-size: 13px; color: #16a34a; margin-bottom: 10px; font-weight: bold;">💾 自动记忆功能已开启，重启网页不再丢失非敏感配置。</p>
+            <p style="font-size: 12px; color: #b45309; margin-bottom: 20px;">API Key 仅保留在当前页面输入框中，不会写入浏览器存储。刷新页面后请重新输入。</p>
+
+            <label>Base URL (接口地址)</label>
+            <input type="text" id="baseUrl" value="http://127.0.0.1:3000/v1" oninput="saveConfig()">
+
+            <label style="color: #dc2626;">API Key (必填令牌)</label>
+            <input type="password" id="apiKey" placeholder="sk-..." onblur="fetchModels()" oninput="saveConfig()">
+
+            <div style="background: #f8fafc; padding: 12px; border-radius: 4px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+                <label style="color: #4f46e5;">Model Selection (模型选择) <span id="modelCount" style="color: #16a34a; font-weight: normal; font-size: 12px;"></span></label>
+                
+                <div id="modelSelectContainer" style="display: none;">
+                    <select id="modelSelect" onchange="document.getElementById('modelName').value = this.value; saveConfig();"></select>
+                </div>
+                <input type="text" id="modelName" placeholder="手动输入模型名称..." oninput="saveConfig()">
+                
+                <button class="btn btn-secondary" style="margin-bottom: 0;" onclick="fetchModels()" id="btnFetchModels">🔄 一键拉取可用模型</button>
+            </div>
+
+            <label>Upload Document (PDF)</label>
+            <input type="file" id="fileInput" accept="application/pdf" onchange="handlePdfSelect()">
+
+            <label>Matrix Questions (提取维度)</label>
+            <textarea id="questionsInput" rows="8" oninput="saveConfig()">报告期的总营收、净利润、毛利率分别是多少？同比和环比增长情况如何？
+公司在报告期内最核心的业务板块是哪几个？各自的营收占比和增速是多少？
+公司在研发（R&D）上的投入资金是多少？重点提到了哪些新产品或底层技术突破？
+报告中是否有明确提到公司的主要竞争对手？公司自认为的市场竞争优势是什么？
+公司对下一个财年或下个季度的业绩指引（Forward-looking Guidance）或产能规划是什么？
+报告重点披露了哪些前瞻性风险（如地缘政治、关税、供应链中断、政策监管等）？</textarea>
+
+            <button class="btn" id="btnAnalyze" onclick="analyze()">Generate Matrix</button>
+
+            <div id="sysMessage" class="msg-box"></div>
+        </div>
+
+        <!-- 数据视图 -->
+        <div class="panel right-panel">
+            <h2 style="margin-top: 0; color: #1e293b; font-size: 20px;">Matrix View</h2>
+            <div id="emptyState" class="empty-state">Data matrix will appear here</div>
+            <div style="overflow: hidden;">
+                <div id="matrixGrid" class="ag-theme-alpine" style="width: 100%; height: 480px; display: none;"></div>
+            </div>
+            <div id="exportBar" style="display: none; margin-top: 12px;">
+                <button class="btn" id="btnExportCsv" onclick="exportCsv()">Export CSV</button>
+                <span style="margin-left: 8px; font-size: 12px; color: #b45309;">安全提示：导出的 CSV 已对 =、+、-、@ 开头的单元格自动加单引号，防止重新导入时执行公式。</span>
+            </div>
+            <h3 style="margin-top: 20px; color: #1e293b; font-size: 16px;">Document Preview</h3>
+            <div class="pdf-viewer" id="pdfViewerContainer">
+                <div id="pdfViewerStatus" class="pdf-status">选择 PDF 文件后在此预览，悬停引用可高亮原文。</div>
+                <div id="pdfViewer"></div>
+            </div>
+            <h3 style="margin-top: 20px; color: #1e293b; font-size: 16px;">Citations</h3>
+            <div class="citation-navigator" id="citationNavigator">
+                <div id="citationEmpty" class="pdf-status">生成矩阵后，此处列出引用，点击可在预览中定位到原文页面。</div>
+                <ul id="citationList" style="list-style: none; margin: 0; padding: 0; display: none;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 跨运行对比视图 -->
+    <div class="container" style="margin-top: 20px;">
+        <div class="panel" style="flex-basis: 100%;">
+            <h2 style="margin-top: 0; color: #1e293b; font-size: 20px;">Cross-run Comparison</h2>
+            <div class="compare-selects">
+                <div class="compare-select">
+                    <label>Run A</label>
+                    <select id="compareRunA" onchange="renderComparison()"></select>
+                </div>
+                <div class="compare-select">
+                    <label>Run B</label>
+                    <select id="compareRunB" onchange="renderComparison()"></select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <button class="btn" id="btnCompareRuns" onclick="loadComparisonRuns()">Compare Runs</button>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #b45309; margin-bottom: 8px;">选择两个已保存的矩阵运行进行对比，差异单元格会高亮显示。</div>
+            <div id="comparisonEmpty" class="empty-state" style="margin-top: 0;">选择两个运行后点击 Compare Runs。</div>
+            <div id="comparisonTable" style="display: none; overflow: auto; max-height: 480px;"></div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community@31.3.1/styles/ag-grid.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community@31.3.1/styles/ag-theme-alpine.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.1/dist/ag-grid-community.min.js"></script>
+    <script src="/static/js/pdf-viewer.js"></script>
+
+    <script>
+        // -------------------------
+        // 配置记忆功能 (Local Storage)
+        // -------------------------
+        function saveConfig() {
+            localStorage.setItem('openmatrix_baseUrl', document.getElementById('baseUrl').value);
+            localStorage.setItem('openmatrix_modelName', document.getElementById('modelName').value);
+            localStorage.setItem('openmatrix_questions', document.getElementById('questionsInput').value);
+        }
+
+        function loadConfig() {
+            localStorage.removeItem('openmatrix_apiKey');
+            const baseUrl = localStorage.getItem('openmatrix_baseUrl');
+            const modelName = localStorage.getItem('openmatrix_modelName');
+            const questions = localStorage.getItem('openmatrix_questions');
+
+            if (baseUrl) document.getElementById('baseUrl').value = baseUrl;
+            if (modelName) document.getElementById('modelName').value = modelName;
+            if (questions) document.getElementById('questionsInput').value = questions;
+        }
+
+        // 页面加载完成后，立刻读取记忆的配置
+        document.addEventListener('DOMContentLoaded', loadConfig);
+
+        // 选择 PDF 后在 PDF.js 预览中渲染
+        function handlePdfSelect() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput && fileInput.files && fileInput.files[0];
+            if (file && window.OpenMatrixPdfViewer) {
+                window.OpenMatrixPdfViewer.renderPdf(file, function () {
+                    const status = document.getElementById('pdfViewerStatus');
+                    if (status) status.textContent = '已渲染，悬停矩阵中的引用可高亮原文。';
+                });
+            }
+        }
+
+
+        // -------------------------
+        // 核心业务逻辑
+        // -------------------------
+        function showMessage(text, type) {
+            const msgBox = document.getElementById('sysMessage');
+            msgBox.style.display = 'block';
+            msgBox.className = 'msg-box msg-' + type;
+            msgBox.innerHTML = text;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        let currentRunId = null;
+
+        function exportCsv() {
+            if (!currentRunId) {
+                showMessage('暂无可导出的矩阵结果，请先生成矩阵。', 'error');
+                return;
+            }
+            const a = document.createElement('a');
+            a.href = '/api/export-csv/' + encodeURIComponent(currentRunId);
+            a.download = 'matrix_' + currentRunId + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function citationStatusClass(status) {
+            if (status === 'verified_exact') return 'status-verified';
+            if (status === 'not_found' || status === 'needs_review') return 'status-review';
+            return 'status-muted';
+        }
+
+        function citationStatusLabel(status) {
+            if (status === 'verified_exact') return 'Verified exact';
+            if (status === 'not_found') return 'Quote not found';
+            if (status === 'not_applicable') return 'No quote';
+            return status || 'Unknown';
+        }
+
+        async function fetchModels(isSilent = false) {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const btn = document.getElementById('btnFetchModels');
+
+            if (!baseUrl || !apiKey) return;
+
+            btn.innerText = "⏳ 拉取中...";
+            try {
+                const res = await fetch('/api/models', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({base_url: baseUrl, api_key: apiKey})});
+                const data = await res.json();
+                
+                if (res.ok && data.models) {
+                    const select = document.getElementById('modelSelect');
+                    select.innerHTML = '';
+                    data.models.forEach(model => {
+                        const opt = document.createElement('option');
+                        opt.value = model;
+                        opt.innerText = model;
+                        select.appendChild(opt);
+                    });
+                    
+                    document.getElementById('modelSelectContainer').style.display = 'block';
+                    document.getElementById('modelName').style.display = 'none';
+                    
+                    // 如果本地缓存没有选中的模型，默认选第一个
+                    if (!document.getElementById('modelName').value || !data.models.includes(document.getElementById('modelName').value)) {
+                        document.getElementById('modelName').value = data.models[0];
+                    }
+                    
+                    // 同步 Select 的显示状态
+                    select.value = document.getElementById('modelName').value;
+                    document.getElementById('modelCount').innerText = `✓ 已拉取 ${data.models.length} 个`;
+                    
+                    if (!isSilent) showMessage("✅ 成功拉取模型列表！", "success");
+                    saveConfig(); // 成功拉取后顺便保存一下
+                } else {
+                    throw new Error(data.error || "获取失败");
+                }
+            } catch (e) {
+                if (!isSilent) showMessage("⚠️ 获取模型失败: " + e.message, "error");
+            } finally {
+                btn.innerText = "🔄 一键拉取可用模型";
+            }
+        }
+
+        let gridApi = null;
+
+        function renderCitationNavigator(rows) {
+            const list = document.getElementById('citationList');
+            const empty = document.getElementById('citationEmpty');
+            const all = rows || [];
+            const items = all.filter(function (r) { return r.quoteText && r.citationStatus && r.citationStatus !== 'not_found'; });
+            if (!items.length) {
+                empty.style.display = 'block';
+                list.style.display = 'none';
+                list.innerHTML = '';
+                return;
+            }
+            empty.style.display = 'none';
+            list.style.display = 'block';
+            list.innerHTML = '';
+            items.forEach(function (row) {
+                const li = document.createElement('li');
+                li.className = 'citation-item';
+                const page = row.page != null ? `<span class="page-label">P${escapeHtml(row.page)}</span>` : '';
+                li.innerHTML = `<span class="status-badge ${escapeHtml(row.statusClass)}">${escapeHtml(row.statusLabel)}</span><span class="citation-quote">${escapeHtml(row.quoteText)}</span>${page}`;
+                li.addEventListener('click', function () {
+                    if (window.OpenMatrixPdfViewer) {
+                        const found = window.OpenMatrixPdfViewer.navigateToCitation(row.quoteText, row.page);
+                        const status = document.getElementById('pdfViewerStatus');
+                        if (status && found != null) {
+                            status.textContent = '已定位引用：Page ' + found;
+                        }
+                    }
+                });
+                list.appendChild(li);
+            });
+        }
+
+        function renderMatrixGrid(rows) {
+            const gridDiv = document.getElementById('matrixGrid');
+            if (!gridDiv || !window.agGrid) return;
+
+            const columnDefs = [
+                { headerName: 'Dimension / Question', field: 'question', sortable: true, flex: 3, cellClass: 'matrix-cell', cellRenderer: (params) => `<span style="font-weight: 500;">${escapeHtml(params.value)}</span>` },
+                { headerName: 'Extracted Answer', field: 'answer', sortable: true, flex: 4, cellClass: 'matrix-cell', cellRenderer: (params) => `<span>${escapeHtml(params.value)}</span>` },
+                { headerName: 'Source Quote', field: 'quote', sortable: true, flex: 5, cellClass: 'matrix-cell quote', cellRenderer: (params) => `<span class="quote-text" data-quote="${escapeHtml(params.value)}">${escapeHtml(params.value)}</span>` },
+                { headerName: 'Citation Status', field: 'statusLabel', sortable: true, flex: 2, cellClass: 'matrix-cell', cellRenderer: (params) => {
+                    const page = params.data && params.data.page != null ? `<span class="page-label">Page ${escapeHtml(params.data.page)}</span>` : '';
+                    return `<span class="status-badge ${escapeHtml(params.data ? params.data.statusClass : '')}">${escapeHtml(params.value)}</span>${page}`;
+                } },
+            ];
+
+            const gridOptions = {
+                columnDefs: columnDefs,
+                rowData: rows,
+                defaultColDef: { resizable: true },
+                rowHeight: 60,
+                animateRows: true,
+                onCellMouseEnter: (event) => {
+                    const quoteText = event.data && event.data.quoteText ? event.data.quoteText : '';
+                    if (window.OpenMatrixPdfViewer) {
+                        window.OpenMatrixPdfViewer.highlightQuote(quoteText);
+                    }
+                },
+                onCellMouseLeave: () => {
+                    if (window.OpenMatrixPdfViewer) {
+                        window.OpenMatrixPdfViewer.clearHighlights();
+                    }
+                },
+            };
+
+            if (gridApi) {
+                gridApi.updateGridOptions({ rowData: rows });
+            } else {
+                gridApi = agGrid.createGrid(gridDiv, gridOptions);
+            }
+        }
+
+        async function loadComparisonRun(runId) {
+            if (!runId) return null;
+            const res = await fetch('/api/matrix-runs/' + encodeURIComponent(runId));
+            if (!res.ok) return null;
+            return res.json();
+        }
+
+        async function loadComparisonRuns() {
+            const runA = document.getElementById('compareRunA').value;
+            const runB = document.getElementById('compareRunB').value;
+            const btn = document.getElementById('btnCompareRuns');
+            if (!runA || !runB) {
+                showMessage('请先选择两个运行进行对比。', 'error');
+                return;
+            }
+            btn.disabled = true;
+            btn.innerText = 'Comparing...';
+            try {
+                const [dataA, dataB] = await Promise.all([loadComparisonRun(runA), loadComparisonRun(runB)]);
+                if (!dataA || !dataB) {
+                    showMessage('对比运行数据加载失败，请确认运行仍存在。', 'error');
+                    return;
+                }
+                renderComparison(dataA, dataB);
+            } catch (e) {
+                showMessage('对比失败: ' + (e.message || e), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Compare Runs';
+            }
+        }
+
+        function comparisonCellKey(cell) {
+            const doc = cell.document_name || (cell.document_index ?? '');
+            return cell.question_index != null ? String(cell.question_index) + '|' + doc : cell.question;
+        }
+
+        function normalizeComparisonValue(value) {
+            return String(value ?? '').trim().toLowerCase();
+        }
+
+        function cellValuesEqual(a, b) {
+            if ((a == null) !== (b == null)) return false;
+            return normalizeComparisonValue(a) === normalizeComparisonValue(b);
+        }
+
+        function comparisonRowKey(a, b) {
+            return (a.question || '').trim() || (b.question || '').trim();
+        }
+
+        function buildComparisonMap(cells) {
+            const map = new Map();
+            (cells || []).forEach(cell => {
+                const key = comparisonCellKey(cell);
+                const q = cell.question || '';
+                if (!map.has(q)) map.set(q, []);
+                map.get(q).push(cell);
+            });
+            return map;
+        }
+
+        function comparisonMarkup(data) {
+            const cells = data.cells || [];
+            const docLabels = {};
+            const docColumns = [];
+            (cells || []).forEach(cell => {
+                const doc = cell.document_name || ('Document ' + (cell.document_index ?? 0));
+                if (!(doc in docLabels)) {
+                    docLabels[doc] = true;
+                    docColumns.push(doc);
+                }
+            });
+            return { cells, docColumns };
+        }
+
+        function renderComparison(dataA, dataB) {
+            const container = document.getElementById('comparisonTable');
+            const empty = document.getElementById('comparisonEmpty');
+            const { cells: cellsA } = comparisonMarkup(dataA);
+            const { cells: cellsB } = comparisonMarkup(dataB);
+            const mapA = buildComparisonMap(cellsA);
+            const mapB = buildComparisonMap(cellsB);
+            const questions = new Set([...mapA.keys(), ...mapB.keys()]);
+
+            if (!questions.size) {
+                empty.style.display = 'block';
+                container.style.display = 'none';
+                return;
+            }
+
+            empty.style.display = 'none';
+            container.style.display = 'block';
+            container.innerHTML = '';
+
+            const table = document.createElement('table');
+            table.className = 'comparison-table';
+
+            const thead = document.createElement('thead');
+            const headRow = document.createElement('tr');
+            const headQ = document.createElement('th');
+            headQ.textContent = 'Dimension / Question';
+            headRow.appendChild(headQ);
+            const headA = document.createElement('th');
+            headA.textContent = 'Run A';
+            headRow.appendChild(headA);
+            const headB = document.createElement('th');
+            headB.textContent = 'Run B';
+            headRow.appendChild(headB);
+            thead.appendChild(headRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            questions.forEach(q => {
+                const groupA = mapA.get(q) || [];
+                const groupB = mapB.get(q) || [];
+                const row = document.createElement('tr');
+
+                const cellValues = (group, key) => (group.length && group[0][key] != null ? group[0][key] : (group.length ? '' : null));
+                const va = cellValues(groupA, 'answer');
+                const vb = cellValues(groupB, 'answer');
+                const sa = cellValues(groupA, 'status');
+                const sb = cellValues(groupB, 'status');
+                const ca = cellValues(groupA, 'citation_status');
+                const cb = cellValues(groupB, 'citation_status');
+
+                let divergent = false;
+                if (groupA.length !== groupB.length) {
+                    divergent = true;
+                } else if (!cellValuesEqual(va, vb) || !cellValuesEqual(sa, sb) || !cellValuesEqual(ca, cb)) {
+                    divergent = true;
+                }
+
+                if (divergent) row.classList.add('divergent-row');
+
+                const tdQ = document.createElement('td');
+                tdQ.textContent = q || '';
+                row.appendChild(tdQ);
+
+                [groupA, groupB].forEach(group => {
+                    const td = document.createElement('td');
+                    if (!group.length) {
+                        td.appendChild(document.createTextNode('—'));
+                    } else {
+                        const cellsDiv = document.createElement('div');
+                        group.forEach(cell => {
+                            const lineDiv = document.createElement('div');
+                            lineDiv.className = 'comparison-line';
+                            let badge = '';
+                            if (cell.status) {
+                                badge = `<span class="status-badge ${citationStatusClass(cell.status)}">${escapeHtml(citationStatusLabel(cell.status))}</span> `;
+                            }
+                            let citation = '';
+                            if (cell.citation_status) {
+                                citation = `<span class="status-badge ${escapeHtml(citationStatusClass(cell.citation_status))}">${escapeHtml(citationStatusLabel(cell.citation_status))}</span>`;
+                            }
+                            const page = cell.page != null ? `<span class="page-label">P${escapeHtml(cell.page)}</span>` : '';
+                            lineDiv.innerHTML = badge + citation + ' <span>' + escapeHtml(cell.answer || '') + '</span> ' + page;
+                            cellsDiv.appendChild(lineDiv);
+                        });
+                        td.appendChild(cellsDiv);
+                    }
+                    row.appendChild(td);
+                });
+
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+
+        async function populateRunSelectors() {
+            try {
+                const res = await fetch('/api/v1/runs?limit=50');
+                const data = await res.json();
+                const runs = data.runs || [];
+                const selectA = document.getElementById('compareRunA');
+                const selectB = document.getElementById('compareRunB');
+                const empty = document.getElementById('comparisonEmpty');
+                selectA.innerHTML = '';
+                selectB.innerHTML = '';
+                runs.forEach(run => {
+                    const oa = document.createElement('option');
+                    oa.value = run;
+                    oa.textContent = run;
+                    selectA.appendChild(oa);
+                    const ob = document.createElement('option');
+                    ob.value = run;
+                    ob.textContent = run;
+                    selectB.appendChild(ob);
+                });
+                if (runs.length > 1) {
+                    selectB.selectedIndex = 1;
+                }
+                if (!runs.length) {
+                    selectA.innerHTML = '<option value="">暂无历史运行</option>';
+                    selectB.innerHTML = '<option value="">暂无历史运行</option>';
+                } else {
+                    empty.textContent = '选择两个运行后点击 Compare Runs。';
+                }
+            } catch (e) {
+                showMessage('历史运行列表加载失败: ' + (e.message || e), 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', populateRunSelectors);
+
+        async function analyze(isRetry = false) {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const modelName = document.getElementById('modelName').value;
+            const fileInput = document.getElementById('fileInput').files[0];
+            const questionsInput = document.getElementById('questionsInput').value;
+            const btn = document.getElementById('btnAnalyze');
+
+            saveConfig(); // 开始分析前，强制保存一次全部配置
+
+            if (!baseUrl || !modelName || !fileInput || !questionsInput) {
+                showMessage("请填写完整的配置，尤其是模型和上传 PDF 文件！", "error");
+                return;
+            }
+
+            const questions = questionsInput.split('\n').filter(q => q.trim() !== '');
+
+            btn.disabled = true;
+            btn.innerText = "Analyzing Document...";
+            if (!isRetry) showMessage("处理中，请稍候...", "info");
+
+            const formData = new FormData();
+            formData.append('file', fileInput);
+            formData.append('api_key', apiKey);
+            formData.append('base_url', baseUrl);
+            formData.append('modelName', modelName);
+            formData.append('model_name', modelName);
+            formData.append('questions', JSON.stringify(questions));
+
+            try {
+                const response = await fetch('/api/analyze', { method: 'POST', body: formData });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Server error');
+                }
+
+                document.getElementById('emptyState').style.display = 'none';
+                const gridDiv = document.getElementById('matrixGrid');
+                gridDiv.style.display = 'block';
+                currentRunId = result.run_id || null;
+                document.getElementById('exportBar').style.display = currentRunId ? 'block' : 'none';
+                const rows = result.data.map((row, index) => {
+                    const status = row.citation_status || 'unknown';
+                    const page = row.page != null ? row.page : null;
+                    return {
+                        index: index,
+                        question: row.question || '',
+                        answer: row.answer || '',
+                        quote: row.quote || '',
+                        citationStatus: status,
+                        statusLabel: citationStatusLabel(status),
+                        statusClass: citationStatusClass(status),
+                        page: page,
+                        quoteText: (row.quote || ''),
+                    };
+                });
+                renderMatrixGrid(rows);
+                renderCitationNavigator(rows);
+                const hasCitationIssues = result.status === 'needs_review' || result.data.some(row => row.citation_status === 'not_found');
+
+                if (hasCitationIssues) {
+                    showMessage(`⚠️ 分析完成，但有引用未命中原文，请人工复核。当前使用模型：<b>${escapeHtml(modelName)}</b>`, "error");
+                } else {
+                    showMessage(`✅ 分析成功！所有引用已命中原文。当前使用模型：<b>${escapeHtml(modelName)}</b>`, "success");
+                }
+
+            } catch (err) {
+                if (!isRetry && (err.message.includes('503') || err.message.includes('model_not_found'))) {
+                    showMessage(`⚠️ 找不到模型 <b>${modelName}</b>，尝试拉取并自动替补...`, "info");
+                    await fetchModels(true);
+                    const select = document.getElementById('modelSelect');
+                    if (select.options.length > 0) {
+                        let fallback = select.options[0].value;
+                        for (let i=0; i<select.options.length; i++) {
+                            if (select.options[i].value.includes('gemini') || select.options[i].value.includes('deepseek')) {
+                                fallback = select.options[i].value; break;
+                            }
+                        }
+                        document.getElementById('modelName').value = fallback;
+                        select.value = fallback;
+                        saveConfig(); // 替换后立刻保存记忆
+                        
+                        setTimeout(() => {
+                            showMessage(`🔄 自动切换至模型 <b>${fallback}</b>，重新请求中...`, "info");
+                            analyze(true);
+                        }, 1000);
+                        return; 
+                    }
+                }
+                
+                showMessage(err.message, "error");
+            } finally {
+                if (!isRetry && document.getElementById('sysMessage').innerText.indexOf('自动切换') === -1) {
+                    btn.disabled = false;
+                    btn.innerText = "Generate Matrix";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

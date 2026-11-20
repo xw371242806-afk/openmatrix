@@ -1,0 +1,24 @@
+name: Feature Request
+description: Propose a new feature, data connector, or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What research workflow or verification problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the expected UX, API, or MCP tool behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or license constraints
+      description: Mention any existing open-source libraries (MIT/Apache-2.0/BSD preferred).

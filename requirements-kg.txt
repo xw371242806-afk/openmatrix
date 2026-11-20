@@ -1,0 +1,3 @@
+# Optional ISD-KG1 PoC dependency. Default installs and CI do not require it.
+lightrag-hku==1.5.6
+openai>=2.20,<3.0

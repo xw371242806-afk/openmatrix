@@ -1,0 +1,145 @@
+/* ============================================================
+   OpenMatrix — Settings (stacked sections)
+   Research Desk: paper cards, hairlines, ink text, copper accent.
+   ============================================================ */
+
+.settings-page {
+  max-width: 980px;
+}
+
+.settings-page .desk-card { padding: 18px 20px; }
+
+/* ── Section head with inline refresh ───────────────────── */
+
+.settings-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.settings-section-head .section-label { margin-bottom: 0; }
+
+/* ── Appearance & language ──────────────────────────────── */
+
+.settings-language-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.settings-language-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+/* ── Access & keys ──────────────────────────────────────── */
+
+.settings-note {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  margin: 0 0 12px;
+  max-width: 720px;
+}
+
+.settings-connect-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.settings-connect-row .ant-input-password {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.settings-table-scroll {
+  overflow-x: auto;
+}
+
+.settings-cell-mono {
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.settings-create-form {
+  margin-top: 14px;
+}
+
+.settings-create-form .ant-form-item { margin-bottom: 0; }
+
+.settings-secret {
+  word-break: break-all;
+  white-space: pre-wrap;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: var(--paper-sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+/* ── Key/value rows (routing + system health) ───────────── */
+
+.settings-kv {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-kv-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--hairline);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.settings-kv-row:last-child { border-bottom: none; }
+
+.settings-kv-key {
+  flex: 0 1 180px;
+  font-size: 12.5px;
+  color: var(--ink-secondary);
+  overflow-wrap: anywhere;
+}
+
+.settings-kv-value {
+  font-size: 12.5px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.settings-kv-task {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.settings-kv-env { color: var(--ink-muted); }
+
+/* ── Loading rows ───────────────────────────────────────── */
+
+.settings-loading {
+  display: flex;
+  justify-content: center;
+  padding: 26px 0;
+}
+
+/* ── Keyboard focus ─────────────────────────────────────── */
+
+.settings-page :focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 1px;
+}

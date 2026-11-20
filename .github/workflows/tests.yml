@@ -1,0 +1,197 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - run: coverage run --source=main,storage,library,apikeys,audit,mcp_server -m pytest -q
+      - run: coverage report --fail-under=80
+
+  ui-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci
+        working-directory: ui
+      - run: npm run test
+        working-directory: ui
+      - run: npm run build
+        working-directory: ui
+
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m pytest -v
+
+  running-service-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements.txt
+      - name: Start running service
+        env:
+          OPENMATRIX_RUN_DB: ${{ runner.temp }}/openmatrix-runs
+        run: |
+          mkdir -p "$OPENMATRIX_RUN_DB"
+          nohup python main.py > "$RUNNER_TEMP/openmatrix-service.log" 2>&1 &
+          echo "service_pid=$!" >> "$GITHUB_ENV"
+      - name: Wait for service
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8000/static/index.html >/dev/null; then
+              echo "service ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "service did not become ready" >&2
+          exit 1
+      - name: Run running-service E2E
+        env:
+          OPENMATRIX_RUN_DB: ${{ runner.temp }}/openmatrix-runs
+        run: python scripts/verify_running_service.py --service-url http://127.0.0.1:8000
+      - name: Stop service
+        if: always()
+        run: kill "$service_pid" || true
+
+  prod-storage:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: openmatrix
+          POSTGRES_PASSWORD: openmatrix
+          POSTGRES_DB: openmatrix
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openmatrix"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements.txt
+      - name: Start MinIO
+        # Service containers cannot reliably run MinIO (image has no curl/wget
+        # for a health-cmd, and the default CMD needs an explicit server arg).
+        # Run it directly so failures are visible in the job log.
+        run: |
+          docker run -d --rm --name minio-verify \
+            -p 9000:9000 \
+            -e MINIO_ROOT_USER=openmatrix \
+            -e MINIO_ROOT_PASSWORD=openmatrix-secret \
+            pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372 \
+            server /data --console-address ":9001"
+          sleep 3
+          docker ps --filter name=minio-verify --format "{{.Status}}"
+      - name: Verify production PG+S3 storage backends
+        env:
+          OPENMATRIX_METADATA_ENGINE: postgres
+          OPENMATRIX_PG_DSN: postgresql://openmatrix:openmatrix@localhost:5432/openmatrix
+          OPENMATRIX_OBJECT_STORE: s3
+          OPENMATRIX_S3_ENDPOINT: http://localhost:9000
+          OPENMATRIX_S3_BUCKET: openmatrix
+          OPENMATRIX_S3_ACCESS_KEY: openmatrix
+          OPENMATRIX_S3_SECRET_KEY: openmatrix-secret
+        run: python scripts/verify_prod_storage.py --engines
+      - name: Stop MinIO
+        if: always()
+        run: docker rm -f minio-verify || true
+
+  prod-compose-smoke:
+    runs-on: ubuntu-latest
+    # CI-only throwaway credentials for compose interpolation.
+    # Compose requires POSTGRES_PASSWORD / MINIO_ROOT_PASSWORD via .env
+    # (see test_compose_security); inject them here so start + teardown work
+    # without committing secrets into docker-compose*.yml.
+    env:
+      POSTGRES_USER: openmatrix
+      POSTGRES_PASSWORD: openmatrix-ci
+      POSTGRES_DB: openmatrix
+      MINIO_ROOT_USER: openmatrix
+      MINIO_ROOT_PASSWORD: openmatrix-ci-secret
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the production compose overlay
+        run: docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod up -d --build
+      - name: Wait for the app then assert PG/S3 were actually selected
+        run: |
+          # Prod image binds 0.0.0.0 so auth auto-enables; /api/v1/health stays
+          # public, but /api/v1/health/detailed requires Bearer (master key).
+          # Do not disable auth or fake a silent fallback - use the real key.
+          COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod"
+          ready=0
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:8000/api/v1/health >/dev/null; then
+              ready=1; break
+            fi
+            sleep 5
+          done
+          if [ "$ready" != "1" ]; then
+            echo "app /api/v1/health never became ready" >&2
+            $COMPOSE ps -a || true
+            $COMPOSE logs --no-color app --tail 120 || true
+            exit 1
+          fi
+          key=$($COMPOSE exec -T app cat /data/master_key.txt | tr -d '\r\n')
+          if [ -z "$key" ]; then
+            echo "master key missing inside app container (/data/master_key.txt)" >&2
+            $COMPOSE logs --no-color app --tail 120 || true
+            exit 1
+          fi
+          ok=0
+          for i in $(seq 1 40); do
+            body=$(curl -sf -H "Authorization: Bearer $key" http://localhost:8000/api/v1/health/detailed 2>/dev/null) || { sleep 5; continue; }
+            meta=$(printf '%s' "$body" | python -c 'import sys,json; print(json.load(sys.stdin)["components"].get("metadata",""))')
+            obj=$(printf '%s' "$body" | python -c 'import sys,json; print(json.load(sys.stdin)["components"].get("object",""))')
+            mst=$(printf '%s' "$body" | python -c 'import sys,json; print(json.load(sys.stdin)["components"].get("metadata_store",""))')
+            ost=$(printf '%s' "$body" | python -c 'import sys,json; print(json.load(sys.stdin)["components"].get("object_store",""))')
+            echo "attempt $i: metadata=$meta object=$obj metadata_store=$mst object_store=$ost"
+            if [ "$meta" = "postgres" ] && [ "$obj" = "s3" ] && [ "$mst" = "ok" ] && [ "$ost" = "ok" ]; then
+              ok=1; break
+            fi
+            sleep 5
+          done
+          if [ "$ok" != "1" ]; then
+            echo "production storage selection verification failed" >&2
+            $COMPOSE ps -a || true
+            $COMPOSE logs --no-color app --tail 120 || true
+            exit 1
+          fi
+          echo "SUCCESS: production stack selected metadata=postgres object=s3"
+
+      - name: Stop the production compose overlay
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod down -v
