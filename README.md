@@ -62,7 +62,7 @@ OpenMatrix is well suited for workflows such as:
 
 ### Interested in a controlled pilot?
 
-A productive pilot starts with one repeatable research task, public or safely de-identified filings, and a domain reviewer who can evaluate output quality. Open an issue using the **Pilot** template (`Pilot: <your workflow>`) in [GitHub Issues](https://github.com/xw371242806-afk/openmatrix/issues).
+A productive pilot starts with one repeatable research task, public or safely de-identified filings, and a domain reviewer who can evaluate output quality. Open an issue using the **Pilot** template (`Pilot: <your workflow>`) in [GitHub Issues](https://github.com/xw371242806-afk/openmatrix/issues), or email [ste455525@gmail.com](mailto:ste455525@gmail.com) directly for private pilots, partnerships, and collaboration inquiries.
 
 Do not post confidential documents, credentials, personal data, or regulated information in public issues.
 
@@ -231,6 +231,12 @@ OpenMatrix is an independent implementation licensed under the [Apache License 2
 ## Contributing
 
 We welcome bug reports, documentation improvements, and pull requests! See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md), and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Contact & Collaboration
+
+- **Email (pilots, partnerships, collaboration):** [ste455525@gmail.com](mailto:ste455525@gmail.com)
+- **Bug reports & feature requests:** [GitHub Issues](https://github.com/xw371242806-afk/openmatrix/issues)
+- **General Q&A & ideas:** [GitHub Discussions](https://github.com/xw371242806-afk/openmatrix/discussions)
 
 ## License
 

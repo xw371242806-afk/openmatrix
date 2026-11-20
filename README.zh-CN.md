@@ -23,7 +23,7 @@ OpenMatrix 可以把财报、公告、研究文档与公开数据转换为**可�
 
 > **发布状态（`v0.1.0` Public Preview）：**适用于本地评估、自托管团队试点与 MCP 工作流编排。部署到内网或公网前，请阅读[安全策略](SECURITY.md)与[专利与合规声明](#专利与合规声明)。
 
-![OpenMatrix Research Desk](ui/design/screenshots/desktop_1440_overview.png)
+![OpenMatrix Research Desk](ui/design/screenshots/desktop_1440_overview_zh.png)
 
 _截图来自使用演示数据的本地验证环境。界面中的单元格数量和验证率不代表客户数据或产品整体准确率承诺。_
 
@@ -60,7 +60,7 @@ OpenMatrix 明确区分 `completed`、`failed`、`unavailable` 与 `needs_review
 
 ### 希望参与受控试点？
 
-欢迎在 [GitHub Issues](https://github.com/xw371242806-afk/openmatrix/issues) 中使用 **Pilot** 模板提交 `Pilot: <你的工作流>`。请勿在公开 Issue 中上传机密文件、API 密钥、个人隐私或受监管数据。
+欢迎在 [GitHub Issues](https://github.com/xw371242806-afk/openmatrix/issues) 中使用 **Pilot** 模板提交 `Pilot: <你的工作流>`；如有私有试点、商务合作或集成定制需求，也可直接发送邮件至 [ste455525@gmail.com](mailto:ste455525@gmail.com)。请勿在公开 Issue 中上传机密文件、API 密钥、个人隐私或受监管数据。
 
 ## 研究工作流
 
@@ -84,25 +84,25 @@ PDF 证据查看器（跳页高亮定位）& 执行审计轨迹
 
 选择文档、配置提取问题与模型端点，确认执行范围与参数就绪后再启动。
 
-![分析工作台](ui/design/screenshots/desktop_1440_analysis_confirm.png)
+![分析工作台](ui/design/screenshots/desktop_1440_analysis_confirm_zh.png)
 
 ### 检查答案与支持度，而不是盲信黑盒
 
 在一个工作区内同时查看运行状态、引用原文、答案支持度信号、物理页码和导出选项。
 
-![研究结果](ui/design/screenshots/desktop_1440_results_drawer.png)
+![研究结果](ui/design/screenshots/desktop_1440_results_drawer_zh.png)
 
 ### 一键跳回原始 PDF 页面定位高亮
 
 通过证据查看器核对原始页面、逐字引文、验证状态及坐标高亮位置。
 
-![证据查看器](ui/design/screenshots/desktop_1440_evidence.png)
+![证据查看器](ui/design/screenshots/desktop_1440_evidence_zh.png)
 
 ### 追踪 Research Agent 的真实执行步骤
 
 运行受步数与超时限制的研究任务，查看每一步工具调用状态；未产生的数据保持明确不可用。
 
-![研究 Agent](ui/design/screenshots/desktop_1440_agent_filled.png)
+![研究 Agent](ui/design/screenshots/desktop_1440_agent_filled_zh.png)
 
 ## 核心能力矩阵
 
@@ -195,6 +195,12 @@ OpenMatrix 基于 [Apache License 2.0](LICENSE) 开源发布。开源许可证�
 
 - 在多文档分析场景下，OpenMatrix 推荐优先采用无网格的 **`analyze_documents`**（文档列表 + 独立问答 + 证据汇总）工作流，且代码库**严格不包含**基于 token attention 分数的 cell 高亮机制。
 - 仓库保留了多文档矩阵式表格视图供本地评估使用；若计划在商业 SaaS 生产环境（尤其是美国司法辖区）部署相关矩阵交互界面，请提前结合现行代码咨询专业知识产权律师。技术合规护栏详见 [PATENT_COMPLIANCE.md](PATENT_COMPLIANCE.md)。
+
+## 联系与合作
+
+- **联系邮箱（合作咨询、私有试点、定制沟通）：** [ste455525@gmail.com](mailto:ste455525@gmail.com)
+- **缺陷反馈与功能建议：** [GitHub Issues](https://github.com/xw371242806-afk/openmatrix/issues)
+- **技术交流与讨论：** [GitHub Discussions](https://github.com/xw371242806-afk/openmatrix/discussions)
 
 ## 参与贡献与许可证
 

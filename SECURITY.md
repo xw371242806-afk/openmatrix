@@ -8,6 +8,7 @@ Instead, report vulnerabilities privately through **GitHub Private Vulnerability
 
 - Open a private security advisory at:
   `https://github.com/xw371242806-afk/openmatrix/security/advisories/new`
+- Or email the maintainer directly at: [ste455525@gmail.com](mailto:ste455525@gmail.com)
 
 Please include:
 - A clear description of the issue and its potential impact.
